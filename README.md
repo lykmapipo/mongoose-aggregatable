@@ -1,9 +1,9 @@
-# mongoose-exportable
+# mongoose-aggregatable
 
-[![Build Status](https://travis-ci.org/lykmapipo/mongoose-exportable.svg?branch=master)](https://travis-ci.org/lykmapipo/mongoose-exportable)
-[![Dependencies Status](https://david-dm.org/lykmapipo/mongoose-exportable/status.svg)](https://david-dm.org/lykmapipo/mongoose-exportable)
+[![Build Status](https://travis-ci.org/lykmapipo/mongoose-aggregatable.svg?branch=master)](https://travis-ci.org/lykmapipo/mongoose-aggregatable)
+[![Dependencies Status](https://david-dm.org/lykmapipo/mongoose-aggregatable/status.svg)](https://david-dm.org/lykmapipo/mongoose-aggregatable)
 
-mongoose plugin to add exports behaviour. 
+mongoose plugin to add aggregations behaviour. 
 
 ## Requirements
 
@@ -11,63 +11,18 @@ mongoose plugin to add exports behaviour.
 
 ## Install
 ```sh
-$ npm install --save mongoose @lykmapipo/mongoose-exportable
+$ npm install --save mongoose @lykmapipo/mongoose-aggregatable
 ```
 
 ## Usage
 
 ```javascript
 const mongoose = require('mongoose');
-const exportable = require('@lykmapipo/mongoose-exportable');
+const aggregatable = require('@lykmapipo/mongoose-aggregatable');
 
-const UserSchema = new Schema({ name: { type: String, exportable: true } });
-UserSchema.plugin(exportable);
+const UserSchema = new Schema({ user: { type: ObjectId, aggregatable: true } });
+UserSchema.plugin(aggregatable);
 const User = mongoose.model('User', UserSchema);
-
-const writeStream = ...;
-const readStream = User.exportJSON();
-readStream.pipe(writeStream);
-
-const writeStream = ...;
-const readStream = User.exportCSV();
-readStream.pipe(writeStream);
-```
-
-## API
-
-### `exportable(schema: Schema, [options: Object])`
-A exportable schema plugin. Once applied to a schema will allow to compute tags from `exportable` schema field and and `tag` and `untag` instance methods
-
-Example
-```js
-const UserSchema = new Schema({ name: { type: String, exportable: true } });
-UserSchema.plugin(exportable);
-const User = mongoose.model('User', UserSchema);
-
-const UserSchema = new Schema({ name: { type: String, exportable: true } });
-UserSchema.plugin(exportable);
-const User = mongoose.model('User', UserSchema);
-```
-
-
-### `exportCSV([criteria: Object])`
-Create `csv` export readable stream.
-
-Example:
-```js
-const writeStream = ...;
-const readStream = User.exportCSV();
-readStream.pipe(writeStream);
-```
-
-### `exportJSON([criteria: Object]): ReadableStream`
-Create `json` export readable stream.
-
-Example:
-```js
-const writeStream = ...;
-const readStream = User.exportJSON();
-readStream.pipe(writeStream);
 ```
 
 ## Testing
@@ -82,8 +37,15 @@ $ npm install
 $ npm test
 ```
 
+## References
+- [MongoDB Aggregation Lookup](https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/)
+- [MongoDB Aggregation Unwind](https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/)
+- [Mongoose Aggregate](https://mongoosejs.com/docs/api.html#Aggregate)
+
+
 ## Contribute
 It will be nice, if you open an issue first so that we can know what is going on, then, fork this repo and push in your ideas. Do not forget to add a bit of test(s) of what value you adding.
+
 
 ## Licence
 The MIT License (MIT)

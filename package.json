@@ -1,15 +1,18 @@
 {
-  "name": "@lykmapipo/mongoose-exportable",
-  "version": "0.2.0",
+  "name": "@lykmapipo/mongoose-aggregatable",
+  "version": "0.1.0",
   "description": "mongoose plugin to add exports behaviour",
   "keywords": [
     "mongoose",
     "mongoose-plugin",
     "lykmapipo",
-    "export",
-    "exportable",
-    "csv",
-    "json"
+    "ref",
+    "population",
+    "populate",
+    "aggregate",
+    "aggregation",
+    "aggregatable",
+    "join"
   ],
   "main": "index.js",
   "scripts": {
@@ -17,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/lykmapipo/mongoose-exportable.git"
+    "url": "https://github.com/lykmapipo/mongoose-aggregatable.git"
   },
   "author": {
     "name": "lykmapipo",
@@ -26,13 +29,15 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lykmapipo/mongoose-exportable/issues"
+    "url": "https://github.com/lykmapipo/mongoose-aggregatable/issues"
   },
-  "homepage": "https://github.com/lykmapipo/mongoose-exportable",
-  "contributors": [{
-    "name": "lykmapipo",
-    "github": "https://github.com/lykmapipo"
-  }],
+  "homepage": "https://github.com/lykmapipo/mongoose-aggregatable",
+  "contributors": [
+    {
+      "name": "lykmapipo",
+      "github": "https://github.com/lykmapipo"
+    }
+  ],
   "devDependencies": {
     "@lykmapipo/include": ">=0.2.0",
     "@lykmapipo/mongoose-test-helpers": ">=0.2.4",
