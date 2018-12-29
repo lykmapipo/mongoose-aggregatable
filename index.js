@@ -7,6 +7,33 @@ const { eachPath } = require('@lykmapipo/mongoose-common');
 
 
 /**
+ * @function normalizeAggregatable
+ * @name normalizeAggregatable
+ * @description normalize aggragate options
+ * @param {Object} optns aggregatable path schema options
+ * @return {Object} normalized aggregatable options
+ * @author lally elias <lallyelias87@mail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * const options = normalizeAggregatable(optns)
+ */
+function normalizeAggregatable(optns) {
+  // ensure options
+  let { pathName, ref, aggregatable } = optns;
+
+  // normalize aggragatable options
+  const lookup = ({ localField: pathName, foreignField: '_id', as: pathName });
+  aggregatable = _.merge({}, lookup, aggregatable);
+
+  let options = _.merge({}, { pathName, ref }, aggregatable);
+  return options;
+}
+
+
+/**
  * @function collectAggregatables
  * @name collectAggregatables
  * @description collect schema aggregatable fields
@@ -33,16 +60,17 @@ function collectAggregatables(schema) {
       _.get(schemaType, 'options')
     );
 
+    //TODO add array:true|false
+
     // check if path is aggregatable
     const isAggregatable =
       (schemaTypeOptions && schemaTypeOptions.aggregatable);
 
     // if aggregatable collect
     if (isAggregatable) {
-      // console.log(pathName, schemaType);
       // obtain aggregatable options
-      const aggregatableOptions =
-        _.pick(schemaTypeOptions, 'ref', 'aggregatable');
+      const { ref, aggregatable } = schemaTypeOptions;
+      const optns = _.merge({}, { pathName, ref, aggregatable });
       /*TODO {
        from: <collection to join>,model(options.ref).collection.name || options.from
        localField: <field from the input documents>,path
@@ -50,7 +78,7 @@ function collectAggregatables(schema) {
        as: <output array field>, path or options.path
      }*/
       // collect aggregatable schema path
-      aggregatables[pathName] = _.merge({}, aggregatableOptions);
+      aggregatables[pathName] = normalizeAggregatable(optns);
     }
   });
 

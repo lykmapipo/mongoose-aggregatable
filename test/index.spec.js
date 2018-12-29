@@ -70,7 +70,6 @@ describe('aggregatable', function () {
   });
 
   it('should collect aggregatable paths', () => {
-    console.log(Person.AGGREGATABLE_FIELDS);
     expect(Person.AGGREGATABLE_FIELDS).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.father).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.mother).to.exist;
@@ -82,6 +81,16 @@ describe('aggregatable', function () {
   it('should not collect non aggregatable paths', () => {
     expect(Person.AGGREGATABLE_FIELDS).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.name).to.not.exist;
+  });
+
+  it('should normalize aggregatable path', () => {
+    const { father } = Person.AGGREGATABLE_FIELDS;
+    expect(father).to.exist;
+    expect(father.localField).to.exist;
+    expect(father.localField).to.be.equal('father');
+    expect(father.foreignField).to.exist;
+    expect(father.foreignField).to.be.equal('_id');
+    expect(father.as).to.exist;
   });
 
   after(done => clear(done));
