@@ -31,8 +31,8 @@ function normalizeAggregatable(optns) {
 
   // shape aggragatable options to follow 
   // mongodb $lookup options format
-  const _from = ref ? _.toLower(inflection.pluralize(ref)) : ref;
-  const _as = _.toLower(inflection.singularize(pathName));
+  const _from = ref ? inflection.pluralize(ref) : ref;
+  const _as = inflection.singularize(pathName);
   const lookup = ({
     from: _from,
     localField: pathName,
@@ -124,7 +124,10 @@ function collectAggregatables(schema) {
  * 	new Schema({ parent: { type: ObjectId, ref:'User', aggregatable:true } });
  * UserSchema.plugin(aggregatable);
  */
-function aggregatable(schema /*, options*/ ) {
+function aggregatable(schema, optns) {
+  // ensure options
+  const options = _.merge({}, { allowDiskUse: true }, optns);
+
   // collect aggregatables schema paths
   const aggregatables = collectAggregatables(schema);
   schema.statics.AGGREGATABLE_FIELDS = aggregatables;
@@ -148,15 +151,20 @@ function aggregatable(schema /*, options*/ ) {
     const Model = this;
 
     // obtain aggregatable
-    let aggregatables =
-      _.filter(Model.AGGREGATABLE_FIELDS, function (aggregatable) {
+    let aggregatables = _.merge({}, Model.AGGREGATABLE_FIELDS);
+
+    // filter to allow only valid aggergatable
+    aggregatables =
+      _.filter(aggregatables, function filterValidAggregatable(aggregatable) {
         return !_.isEmpty(aggregatable.ref || aggregatable.from);
       });
 
-    // ensure aggregatable collection name
+    // ensure aggregatable collection name(i.e from collection)
     aggregatables =
-      _.map(aggregatables, function (aggregatable) {
+      _.map(aggregatables, function ensureFromCollection(aggregatable) {
+        // obtain mongoose model from ref
         const refModel = model(aggregatable.ref);
+        // obtain collection name(from) from ref model
         if (refModel && refModel.collection) {
           const collectionName =
             (refModel.collection.name || aggregatable.from);
@@ -178,7 +186,7 @@ function aggregatable(schema /*, options*/ ) {
     }
 
     // build aggregation based on aggregatables
-    _.forEach(aggregatables, function (aggregatable) {
+    _.forEach(aggregatables, function buildAggregation(aggregatable) {
       // do lookup
       const lookupOptns = _.pick(aggregatable, LOOKUP_FIELDS);
       aggregate.lookup(lookupOptns);
@@ -187,6 +195,12 @@ function aggregatable(schema /*, options*/ ) {
       const unwindOptns = aggregatable.unwind;
       aggregate.unwind(unwindOptns);
     });
+
+    // allow disk usage for aggregation
+    const { allowDiskUse } = options;
+    if (allowDiskUse) {
+      aggregate.allowDiskUse(true);
+    }
 
     // return aggregate
     return aggregate;
