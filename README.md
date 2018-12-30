@@ -70,6 +70,30 @@ const aggregate = Person.lookup();
 aggregate.exec((error, people) => { ... });
 ```
 
+### Schema Options
+Each `aggregatable` field/path can define below options
+
+- `from: String` - Specifies the collection in the same database to perform the lookup with. If not specified `ref` will be used to compute model collection name to lookup. [See](https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/)
+- `foreignField: String` - Specifies the field from the documents in the from collection. If not specified `_id` will be used. [See](https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/) 
+
+Example
+```js
+const PersonSchema = new Schema({
+  name: { type: String },
+  father: { type: ObjectId, ref: 'Person', aggregatable: true }
+});
+
+const PersonSchema = new Schema({
+  name: { type: String },
+  brother: { type: ObjectId, aggregatable: { from: 'people' } }
+});
+
+const PersonSchema = new Schema({
+  name: { type: String },
+  brother: { type: ObjectId, aggregatable: { from: 'people', foreignField: '_id' } }
+});
+```
+
 ## Testing
 * Clone this repository
 

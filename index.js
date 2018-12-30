@@ -28,27 +28,26 @@ const LOOKUP_FIELDS = ['from', 'localField', 'foreignField', 'as'];
 function normalizeAggregatable(optns) {
   // ensure options
   let { pathName, ref, aggregatable, isArray } = optns;
+  aggregatable = _.merge({}, aggregatable);
 
   // shape aggragatable options to follow 
   // mongodb $lookup options format
-  const _from = ref ? inflection.pluralize(ref) : ref;
-  const _as = inflection.singularize(pathName);
+  const _from = (aggregatable.from || (ref ? inflection.pluralize(ref) : ref));
+  const _as = (aggregatable.as || inflection.singularize(pathName));
+  const foreignField = (aggregatable.foreignField || '_id');
   const lookup = ({
     from: _from,
     localField: pathName,
-    foreignField: '_id',
+    foreignField: foreignField,
     as: _as,
     unwind: {
       path: `$${_as}`,
       preserveNullAndEmptyArrays: true
     }
   });
-  const unwind = _.merge({}, aggregatable.unwind);
-  aggregatable = _.omit(aggregatable, 'unwind');
-  aggregatable = _.merge({}, lookup, aggregatable, { unwind });
 
   // merge options
-  let options = _.merge({}, { pathName, ref, isArray }, aggregatable);
+  let options = _.merge({}, { pathName, ref, isArray }, lookup);
   return options;
 }
 
@@ -190,6 +189,8 @@ function aggregatable(schema, optns) {
       // do lookup
       const lookupOptns = _.pick(aggregatable, LOOKUP_FIELDS);
       aggregate.lookup(lookupOptns);
+
+      // TODO unwind localField if its an array
 
       // do unwind
       const unwindOptns = aggregatable.unwind;
