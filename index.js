@@ -93,6 +93,8 @@ function collectAggregatables(schema) {
  * @param {Schema} schema valid mongoose schema
  * @param {Object} [optns] plugin options
  * @author lally elias <lallyelias87@mail.com>
+ * @see {@link https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/}
+ * @see {@link https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/}
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
