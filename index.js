@@ -125,6 +125,7 @@ function aggregatable(schema /*, options*/ ) {
   const aggregatables = collectAggregatables(schema);
   schema.statics.AGGREGATABLE_FIELDS = aggregatables;
 
+  // TODO add to Aggregate.prototype
 
   /**
    * @function lookup
@@ -138,7 +139,7 @@ function aggregatable(schema /*, options*/ ) {
    * @private
    * const aggregation = User.lookup();
    */
-  schema.statics.lookup = function lookup() {
+  schema.statics.lookup = function lookup(criteria) {
     // ref
     const Model = this;
 
@@ -150,8 +151,19 @@ function aggregatable(schema /*, options*/ ) {
 
     // TODO ensure from collections
 
-    // build aggregation
+    //initialize aggregate query
     const aggregate = Model.aggregate();
+
+    // pass match criteria
+    if (criteria) {
+      // cast criteria to actual types
+      criteria = this.where(criteria).cast(this);
+
+      // pass criteria to match aggregation stage
+      aggregate.match(criteria);
+    }
+
+    // build aggregation based on aggregatables
     _.forEach(aggregatables, function (aggregatable) {
       // do lookup
       const lookupOptns =
@@ -159,7 +171,7 @@ function aggregatable(schema /*, options*/ ) {
       aggregate.lookup(lookupOptns);
 
       // do unwind
-      const unwindOptns = _.pick(aggregatable, 'unwind');
+      const unwindOptns = aggregatable.unwind;
       aggregate.unwind(unwindOptns);
     });
 

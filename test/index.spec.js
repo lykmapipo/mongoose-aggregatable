@@ -2,6 +2,7 @@
 
 
 /* dependencies */
+const _ = require('lodash');
 const { include } = require('@lykmapipo/include');
 const { expect } = require('chai');
 const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
@@ -15,6 +16,7 @@ const PersonSchema = new Schema({
   father: { type: ObjectId, ref: 'Person', aggregatable: true },
   mother: { type: ObjectId, ref: 'Person', aggregatable: true },
   sister: { type: ObjectId, ref: 'Person', aggregatable: true },
+  brother: { type: ObjectId, ref: 'Person', aggregatable: true },
   relatives: { type: [ObjectId], ref: 'Person', aggregatable: true },
   friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }]
 });
@@ -26,13 +28,30 @@ const Person = model('Person', PersonSchema);
 
 describe('aggregatable', function () {
 
-  let father = Person.fake();
-  let mother = Person.fake();
-  let sister = Person.fake();
   let relatives = [Person.fake(), Person.fake()];
   let friends = [Person.fake(), Person.fake()];
+  let father = Person.fake().set({ friends });
+  let mother = Person.fake().set({ relatives });
+  let sister = Person.fake();
+  let brother = Person.fake();
+  let john = Person.fake().set({ father, mother, sister });
+  let jean = Person.fake().set({ father, mother, sister, brother, friends });
 
   before(done => clear(done));
+
+  before((done) => {
+    Person.insertMany(relatives, (error, created) => {
+      relatives = created;
+      done(error, created);
+    });
+  });
+
+  before((done) => {
+    Person.insertMany(friends, (error, created) => {
+      friends = created;
+      done(error, created);
+    });
+  });
 
   before((done) => {
     Person.create(father, (error, created) => {
@@ -56,15 +75,22 @@ describe('aggregatable', function () {
   });
 
   before((done) => {
-    Person.insertMany(relatives, (error, created) => {
-      relatives = created;
+    Person.create(brother, (error, created) => {
+      brother = created;
       done(error, created);
     });
   });
 
   before((done) => {
-    Person.insertMany(friends, (error, created) => {
-      friends = created;
+    john.save((error, created) => {
+      john = created;
+      done(error, created);
+    });
+  });
+
+  before((done) => {
+    jean.save((error, created) => {
+      jean = created;
       done(error, created);
     });
   });
@@ -118,6 +144,91 @@ describe('aggregatable', function () {
   it('should be able to lookup', () => {
     expect(Person.lookup).to.exist;
     expect(Person.lookup).to.be.a('function');
+  });
+
+  it('should aggreate from aggregatable paths', (done) => {
+    Person.lookup().exec((error, people) => {
+      expect(error).to.not.exist;
+      expect(people).to.exist;
+      expect(people).to.have.length.at.least(1);
+      done(error, people);
+    });
+  });
+
+  it('should aggreate from aggregatable paths with criteria', (done) => {
+    Person.lookup({ _id: john._id }).exec((error, people) => {
+      expect(error).to.not.exist;
+      expect(people).to.exist;
+      expect(people).to.have.length(1);
+
+      const person = _.first(people);
+      expect(person.father).to.exist;
+      expect(person.father._id).to.be.eql(father._id);
+      expect(person.mother).to.exist;
+      expect(person.mother._id).to.be.eql(mother._id);
+      expect(person.sister).to.exist;
+      expect(person.sister._id).to.be.eql(sister._id);
+      expect(person.friends).to.be.empty;
+      expect(person.relatives).to.be.empty;
+
+      done(error, people);
+    });
+  });
+
+  it('should aggreate from aggregatable paths with criteria', (done) => {
+    Person.lookup({ _id: jean._id }).exec((error, people) => {
+      expect(error).to.not.exist;
+      expect(people).to.exist;
+      expect(people).to.have.length(2);
+
+      const person = _.first(people);
+      expect(person.father).to.exist;
+      expect(person.father._id).to.be.eql(father._id);
+      expect(person.mother).to.exist;
+      expect(person.mother._id).to.be.eql(mother._id);
+      expect(person.sister).to.exist;
+      expect(person.sister._id).to.be.eql(sister._id);
+      expect(person.brother).to.exist;
+      expect(person.brother._id).to.be.eql(brother._id);
+      expect(person.friends).to.have.length(2);
+      expect(person.friend).to.exist;
+      expect(person.relatives).to.be.empty;
+      done(error, people);
+    });
+  });
+
+  it('should aggreate from aggregatable paths with criteria', (done) => {
+    Person.lookup({ _id: father._id }).exec((error, people) => {
+      expect(error).to.not.exist;
+      expect(people).to.exist;
+      expect(people).to.have.length(2);
+
+      const person = _.first(people);
+      expect(person.father).to.not.exist;
+      expect(person.mother).to.not.exist;
+      expect(person.sister).to.not.exist;
+      expect(person.friends).to.have.length(2);
+      expect(person.relatives).to.be.empty;
+
+      done(error, people);
+    });
+  });
+
+  it('should aggreate from aggregatable paths with criteria', (done) => {
+    Person.lookup({ _id: mother._id }).exec((error, people) => {
+      expect(error).to.not.exist;
+      expect(people).to.exist;
+      expect(people).to.have.length(2);
+
+      const person = _.first(people);
+      expect(person.father).to.not.exist;
+      expect(person.mother).to.not.exist;
+      expect(person.sister).to.not.exist;
+      expect(person.relatives).to.have.length(2);
+      expect(person.friends).to.be.empty;
+
+      done(error, people);
+    });
   });
 
   after(done => clear(done));
