@@ -11,7 +11,7 @@ mongoose plugin to add aggregations behaviour.
 
 ## Install
 ```sh
-$ npm install --save mongoose @lykmapipo/mongoose-aggregatable
+$ npm install --save @lykmapipo/mongoose-aggregatable
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ $ npm install --save mongoose @lykmapipo/mongoose-aggregatable
 const mongoose = require('mongoose');
 const aggregatable = require('@lykmapipo/mongoose-aggregatable');
 
-const UserSchema = new Schema({ user: { type: ObjectId, aggregatable: true } });
+const UserSchema = new Schema({ father: { type: ObjectId, aggregatable: true } });
 UserSchema.plugin(aggregatable);
 const User = mongoose.model('User', UserSchema);
 ```

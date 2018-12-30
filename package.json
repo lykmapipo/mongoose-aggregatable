@@ -3,16 +3,17 @@
   "version": "0.1.0",
   "description": "mongoose plugin to add exports behaviour",
   "keywords": [
+    "lykmapipo",
     "mongoose",
     "mongoose-plugin",
-    "lykmapipo",
     "ref",
     "population",
     "populate",
     "aggregate",
     "aggregation",
     "aggregatable",
-    "join"
+    "join",
+    "lookup"
   ],
   "main": "index.js",
   "scripts": {
