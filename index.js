@@ -122,8 +122,50 @@ function collectAggregatables(schema) {
  */
 function aggregatable(schema /*, options*/ ) {
   // collect aggregatables schema paths
-  const aggregatabless = collectAggregatables(schema);
-  schema.statics.AGGREGATABLE_FIELDS = aggregatabless;
+  const aggregatables = collectAggregatables(schema);
+  schema.statics.AGGREGATABLE_FIELDS = aggregatables;
+
+
+  /**
+   * @function lookup
+   * @name lookup
+   * @description Initialize aggregations on the model using aggregatable paths.
+   * @return {Aggregate} mongoose aggregate instance
+   * @author lally elias <lallyelias87@mail.com>
+   * @license MIT
+   * @since 0.1.0
+   * @version 0.1.0
+   * @private
+   * const aggregation = User.lookup();
+   */
+  schema.statics.lookup = function lookup() {
+    // ref
+    const Model = this;
+
+    // obtain aggregatable
+    const aggregatables =
+      _.filter(Model.AGGREGATABLE_FIELDS, function (aggregatable) {
+        return !_.isEmpty(aggregatable.ref);
+      });
+
+    // TODO ensure from collections
+
+    // build aggregation
+    const aggregate = Model.aggregate();
+    _.forEach(aggregatables, function (aggregatable) {
+      // do lookup
+      const lookupOptns =
+        _.pick(aggregatable, 'from', 'localField', 'foreignField', 'as');
+      aggregate.lookup(lookupOptns);
+
+      // do unwind
+      const unwindOptns = _.pick(aggregatable, 'unwind');
+      aggregate.unwind(unwindOptns);
+    });
+
+    // return aggregate
+    return aggregate;
+  };
 }
 
 

@@ -115,6 +115,11 @@ describe('aggregatable', function () {
     expect(friends.isArray).to.be.true;
   });
 
+  it('should be able to lookup', () => {
+    expect(Person.lookup).to.exist;
+    expect(Person.lookup).to.be.a('function');
+  });
+
   after(done => clear(done));
 
 });
