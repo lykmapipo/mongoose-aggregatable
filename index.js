@@ -3,6 +3,7 @@
 
 /* dependencies */
 const _ = require('lodash');
+const inflection = require('inflection');
 const { eachPath } = require('@lykmapipo/mongoose-common');
 
 
@@ -10,7 +11,7 @@ const { eachPath } = require('@lykmapipo/mongoose-common');
  * @function normalizeAggregatable
  * @name normalizeAggregatable
  * @description normalize aggragate options
- * @param {Object} optns aggregatable path schema options
+ * @param {Object} optns aggregatable path options
  * @return {Object} normalized aggregatable options
  * @author lally elias <lallyelias87@mail.com>
  * @license MIT
@@ -26,8 +27,21 @@ function normalizeAggregatable(optns) {
 
   // shape aggragatable options to follow 
   // mongodb $lookup options format
-  const lookup = ({ localField: pathName, foreignField: '_id', as: pathName });
-  aggregatable = _.merge({}, lookup, aggregatable);
+  const _from = _.toLower(inflection.pluralize(ref));
+  const _as = _.toLower(inflection.singularize(pathName));
+  const lookup = ({
+    from: _from,
+    localField: pathName,
+    foreignField: '_id',
+    as: _as,
+    unwind: {
+      path: `$${_as}`,
+      preserveNullAndEmptyArrays: true
+    }
+  });
+  const unwind = _.merge({}, aggregatable.unwind);
+  aggregatable = _.omit(aggregatable, 'unwind');
+  aggregatable = _.merge({}, lookup, aggregatable, { unwind });
 
   // merge options
   let options = _.merge({}, { pathName, ref, isArray }, aggregatable);
@@ -38,7 +52,7 @@ function normalizeAggregatable(optns) {
 /**
  * @function collectAggregatables
  * @name collectAggregatables
- * @description collect schema aggregatable fields
+ * @description collect schema aggregatable paths/fields
  * @param {String} pathName path name
  * @param {SchemaType} schemaType SchemaType of a path
  * @return {Object} hash of all schema aggregatable paths

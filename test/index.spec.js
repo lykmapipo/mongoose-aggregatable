@@ -92,6 +92,10 @@ describe('aggregatable', function () {
     expect(father.foreignField).to.be.equal('_id');
     expect(father.as).to.exist;
     expect(father.as).to.be.equal('father');
+    expect(father.unwind).to.exist;
+    expect(father.unwind.path).to.exist;
+    expect(father.unwind.path).to.be.equal('$father');
+    expect(father.unwind.preserveNullAndEmptyArrays).to.be.true;
     expect(father.isArray).to.be.false;
   });
 
@@ -103,7 +107,11 @@ describe('aggregatable', function () {
     expect(friends.foreignField).to.exist;
     expect(friends.foreignField).to.be.equal('_id');
     expect(friends.as).to.exist;
-    expect(friends.as).to.be.equal('friends');
+    expect(friends.as).to.be.equal('friend');
+    expect(friends.unwind).to.exist;
+    expect(friends.unwind.path).to.exist;
+    expect(friends.unwind.path).to.be.equal('$friend');
+    expect(friends.unwind.preserveNullAndEmptyArrays).to.be.true;
     expect(friends.isArray).to.be.true;
   });
 
