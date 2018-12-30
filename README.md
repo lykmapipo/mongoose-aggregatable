@@ -37,6 +37,39 @@ aggregate.exec((error, people) => { ... });
 
 ```
 
+## API
+
+### `aggregatable(schema: Schema, [options: Object])`
+An aggregatable schema plugin. Once applied to a schema will allow to perform aggrgation from `aggregatable` schema field and add `lookup` model static method.
+
+#### `options: Object`
+- `allowDiskUse: Boolean` - Enable aggregation disk usage. Default to `true`.
+
+Example
+```js
+const PersonSchema = new Schema({
+  name: { type: String },
+  father: { type: ObjectId, ref: 'Person', aggregatable: true },
+  mother: { type: ObjectId, ref: 'Person', aggregatable: true },
+  sister: { type: ObjectId, ref: 'Person', aggregatable: true },
+  brother: { type: ObjectId, aggregatable: { from: 'people' } },
+  relatives: { type: [ObjectId], ref: 'Person', aggregatable: true },
+  friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }]
+});
+PersonSchema.plugin(aggregatable);
+const Person = mongoose.model('Person', PersonSchema);
+```
+
+
+### `lookup([criteria: Object]) : Aggregate`
+Initialize aggregations on the model using aggregatable paths and return [mongoose Aggregate](https://mongoosejs.com/docs/api.html#Aggregate) instance.
+
+Example:
+```js
+const aggregate = Person.lookup();
+aggregate.exec((error, people) => { ... });
+```
+
 ## Testing
 * Clone this repository
 
