@@ -95,6 +95,7 @@ function collectAggregatables(schema) {
  * @author lally elias <lallyelias87@mail.com>
  * @see {@link https://docs.mongodb.com/manual/reference/operator/aggregation/lookup/}
  * @see {@link https://docs.mongodb.com/manual/reference/operator/aggregation/unwind/}
+ * @see {@link https://mongoosejs.com/docs/api.html#Aggregate}
  * @license MIT
  * @since 0.1.0
  * @version 0.1.0
