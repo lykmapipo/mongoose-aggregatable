@@ -22,13 +22,15 @@ const { eachPath } = require('@lykmapipo/mongoose-common');
  */
 function normalizeAggregatable(optns) {
   // ensure options
-  let { pathName, ref, aggregatable } = optns;
+  let { pathName, ref, aggregatable, isArray } = optns;
 
-  // normalize aggragatable options
+  // shape aggragatable options to follow 
+  // mongodb $lookup options format
   const lookup = ({ localField: pathName, foreignField: '_id', as: pathName });
   aggregatable = _.merge({}, lookup, aggregatable);
 
-  let options = _.merge({}, { pathName, ref }, aggregatable);
+  // merge options
+  let options = _.merge({}, { pathName, ref, isArray }, aggregatable);
   return options;
 }
 
@@ -53,14 +55,16 @@ function collectAggregatables(schema) {
 
   // collect aggregatable schema paths
   eachPath(schema, function collectAggregatablePath(pathName, schemaType) {
-
     // obtain path schema type options
     const schemaTypeOptions = _.merge({},
       _.get(schemaType, 'caster.options'),
       _.get(schemaType, 'options')
     );
 
-    //TODO add array:true|false
+    // check if is array
+    const isArray =
+      (schemaType.$isMongooseArray || schemaType.instance === 'Array');
+    schemaTypeOptions.isArray = isArray;
 
     // check if path is aggregatable
     const isAggregatable =
@@ -69,14 +73,9 @@ function collectAggregatables(schema) {
     // if aggregatable collect
     if (isAggregatable) {
       // obtain aggregatable options
-      const { ref, aggregatable } = schemaTypeOptions;
-      const optns = _.merge({}, { pathName, ref, aggregatable });
-      /*TODO {
-       from: <collection to join>,model(options.ref).collection.name || options.from
-       localField: <field from the input documents>,path
-       foreignField: <field from the documents of the "from" collection>,_id
-       as: <output array field>, path or options.path
-     }*/
+      const { ref, aggregatable, isArray } = schemaTypeOptions;
+      const optns = _.merge({}, { pathName, ref, aggregatable, isArray });
+
       // collect aggregatable schema path
       aggregatables[pathName] = normalizeAggregatable(optns);
     }

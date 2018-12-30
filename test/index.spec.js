@@ -91,6 +91,20 @@ describe('aggregatable', function () {
     expect(father.foreignField).to.exist;
     expect(father.foreignField).to.be.equal('_id');
     expect(father.as).to.exist;
+    expect(father.as).to.be.equal('father');
+    expect(father.isArray).to.be.false;
+  });
+
+  it('should normalize array aggregatable path', () => {
+    const { friends } = Person.AGGREGATABLE_FIELDS;
+    expect(friends).to.exist;
+    expect(friends.localField).to.exist;
+    expect(friends.localField).to.be.equal('friends');
+    expect(friends.foreignField).to.exist;
+    expect(friends.foreignField).to.be.equal('_id');
+    expect(friends.as).to.exist;
+    expect(friends.as).to.be.equal('friends');
+    expect(friends.isArray).to.be.true;
   });
 
   after(done => clear(done));
