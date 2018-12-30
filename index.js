@@ -4,7 +4,11 @@
 /* dependencies */
 const _ = require('lodash');
 const inflection = require('inflection');
-const { eachPath } = require('@lykmapipo/mongoose-common');
+const { eachPath, model } = require('@lykmapipo/mongoose-common');
+
+
+/* constants */
+const LOOKUP_FIELDS = ['from', 'localField', 'foreignField', 'as'];
 
 
 /**
@@ -27,7 +31,7 @@ function normalizeAggregatable(optns) {
 
   // shape aggragatable options to follow 
   // mongodb $lookup options format
-  const _from = _.toLower(inflection.pluralize(ref));
+  const _from = ref ? _.toLower(inflection.pluralize(ref)) : ref;
   const _as = _.toLower(inflection.singularize(pathName));
   const lookup = ({
     from: _from,
@@ -144,12 +148,22 @@ function aggregatable(schema /*, options*/ ) {
     const Model = this;
 
     // obtain aggregatable
-    const aggregatables =
+    let aggregatables =
       _.filter(Model.AGGREGATABLE_FIELDS, function (aggregatable) {
-        return !_.isEmpty(aggregatable.ref);
+        return !_.isEmpty(aggregatable.ref || aggregatable.from);
       });
 
-    // TODO ensure from collections
+    // ensure aggregatable collection name
+    aggregatables =
+      _.map(aggregatables, function (aggregatable) {
+        const refModel = model(aggregatable.ref);
+        if (refModel && refModel.collection) {
+          const collectionName =
+            (refModel.collection.name || aggregatable.from);
+          aggregatable.from = collectionName;
+        }
+        return aggregatable;
+      });
 
     //initialize aggregate query
     const aggregate = Model.aggregate();
@@ -166,8 +180,7 @@ function aggregatable(schema /*, options*/ ) {
     // build aggregation based on aggregatables
     _.forEach(aggregatables, function (aggregatable) {
       // do lookup
-      const lookupOptns =
-        _.pick(aggregatable, 'from', 'localField', 'foreignField', 'as');
+      const lookupOptns = _.pick(aggregatable, LOOKUP_FIELDS);
       aggregate.lookup(lookupOptns);
 
       // do unwind

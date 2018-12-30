@@ -20,9 +20,21 @@ $ npm install --save @lykmapipo/mongoose-aggregatable
 const mongoose = require('mongoose');
 const aggregatable = require('@lykmapipo/mongoose-aggregatable');
 
-const UserSchema = new Schema({ father: { type: ObjectId, aggregatable: true } });
-UserSchema.plugin(aggregatable);
-const User = mongoose.model('User', UserSchema);
+const PersonSchema = new Schema({
+  name: { type: String },
+  father: { type: ObjectId, ref: 'Person', aggregatable: true },
+  mother: { type: ObjectId, ref: 'Person', aggregatable: true },
+  sister: { type: ObjectId, ref: 'Person', aggregatable: true },
+  brother: { type: ObjectId, aggregatable: { from: 'people' } },
+  relatives: { type: [ObjectId], ref: 'Person', aggregatable: true },
+  friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }]
+});
+PersonSchema.plugin(taggable);
+const Person = mongoose.model('Person', PersonSchema);
+
+const aggregate = Person.lookup();
+aggregate.exec((error, people) => { ... });
+
 ```
 
 ## Testing

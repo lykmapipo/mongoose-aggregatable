@@ -16,7 +16,7 @@ const PersonSchema = new Schema({
   father: { type: ObjectId, ref: 'Person', aggregatable: true },
   mother: { type: ObjectId, ref: 'Person', aggregatable: true },
   sister: { type: ObjectId, ref: 'Person', aggregatable: true },
-  brother: { type: ObjectId, ref: 'Person', aggregatable: true },
+  brother: { type: ObjectId, aggregatable: { from: 'people' } },
   relatives: { type: [ObjectId], ref: 'Person', aggregatable: true },
   friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }]
 });
@@ -100,6 +100,7 @@ describe('aggregatable', function () {
     expect(Person.AGGREGATABLE_FIELDS.father).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.mother).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.sister).to.exist;
+    expect(Person.AGGREGATABLE_FIELDS.brother).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.relatives).to.exist;
     expect(Person.AGGREGATABLE_FIELDS.friends).to.exist;
   });
