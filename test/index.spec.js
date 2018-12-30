@@ -7,7 +7,7 @@ const { include } = require('@lykmapipo/include');
 const { expect } = require('chai');
 const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const { clear } = require('@lykmapipo/mongoose-test-helpers');
-const taggable = include(__dirname, '..');
+const aggregatable = include(__dirname, '..');
 
 
 /* prepare schemas */
@@ -22,7 +22,7 @@ const PersonSchema = new Schema({
 });
 
 PersonSchema.plugin(require('@lykmapipo/mongoose-faker'));
-PersonSchema.plugin(taggable);
+PersonSchema.plugin(aggregatable);
 const Person = model('Person', PersonSchema);
 
 

@@ -29,7 +29,7 @@ const PersonSchema = new Schema({
   relatives: { type: [ObjectId], ref: 'Person', aggregatable: true },
   friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }]
 });
-PersonSchema.plugin(taggable);
+PersonSchema.plugin(aggregatable);
 const Person = mongoose.model('Person', PersonSchema);
 
 const aggregate = Person.lookup();
