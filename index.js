@@ -199,12 +199,15 @@ const collectAggregatables = schema => {
  * @version 0.1.0
  * @public
  * @example
+ * 
  * const aggregatable = require('@lykmapipo/mongoose-aggregatable');
  * const UserSchema = 
  *  new Schema({ parent: { type: ObjectId, ref:'User', aggregatable:true } });
  * UserSchema.plugin(aggregatable);
+ *
+ * User.lookup((error, users) => { ... });
  */
-function aggregatable(schema, optns) {
+const aggregatable = (schema, optns) => {
   // ensure options
   const options = _.merge({}, { allowDiskUse: true }, optns);
 
@@ -282,7 +285,7 @@ function aggregatable(schema, optns) {
     // return aggregate
     return aggregate;
   };
-}
+};
 
 
 /* export aggregatable plugin */
