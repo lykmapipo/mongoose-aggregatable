@@ -8,31 +8,10 @@ const { mergeObjects } = require('@lykmapipo/common');
 const {
   LOOKUP_FIELDS,
   eachPath,
-  model,
-  toCollectionName,
-  schemaTypeOptionOf
+  collectionNameOf,
+  schemaTypeOptionOf,
+  isArraySchemaType
 } = require('@lykmapipo/mongoose-common');
-
-
-/**
- * @function isArraySchema
- * @name isArraySchema
- * @description check if schema type is array
- * @param {SchemaType} schemaType valid mongoose schema type
- * @return {Boolean} whether schema type is array
- * @since 0.2.0
- * @version 0.1.0
- * @private
- * @example
- * 
- * const isArray = isArraySchema(schemaType)
- * //=> true
- */
-const isArraySchema = (schemaType = {}) => {
-  const { $isMongooseArray = false, instance } = schemaType;
-  const isArray = ($isMongooseArray || instance === 'Array');
-  return isArray;
-};
 
 
 /**
@@ -53,39 +32,6 @@ const isAggregatablePath = (schemaType = {}) => {
   const options = schemaTypeOptionOf(schemaType);
   const canBeAggregated = (options && options.aggregatable && options.ref);
   return canBeAggregated;
-};
-
-
-/**
- * @function collectionOf
- * @name collectionOf
- * @description obtain collection name of the ref model
- * @param {String} ref valid model ref
- * @return {String} underlying collection of the model
- * @since 0.2.0
- * @version 0.1.0
- * @private
- * @example
- * 
- * const collection = collectionOf('User');
- * //=> 'users'
- * 
- */
-const collectionOf = ref => {
-  // get ref model collection name
-  const Ref = model(ref);
-  let collectionName = (
-    _.get(Ref, 'collection.name') ||
-    _.get(Ref, 'collection.collectionName')
-  );
-
-  // derive collection from ref
-  collectionName = (
-    !_.isEmpty(collectionName) ? collectionName : toCollectionName(ref)
-  );
-
-  // return ref collection name
-  return collectionName;
 };
 
 
@@ -126,7 +72,7 @@ const normalize = optns => {
 
   // shape lookup options format as per mongodb specs
   let lookup = mergeObjects({
-    from: collectionOf(ref),
+    from: collectionNameOf(ref),
     as: pathName,
     localField: pathName,
     foreignField: '_id'
@@ -168,7 +114,7 @@ const collectAggregatables = schema => {
       // obtain path schema type options
       const { ref, aggregatable } = schemaTypeOptionOf(schemaType);
       // check if is array
-      const isArray = isArraySchema(schemaType);
+      const isArray = isArraySchemaType(schemaType);
       // obtain aggregatable options
       const optns = mergeObjects({ pathName, ref, aggregatable, isArray });
       // collect aggregatable schema path
@@ -253,7 +199,7 @@ const aggregatable = (schema, optns) => {
 
     // ensure aggregatable collection name(i.e from collection)
     const ensureFromCollection = aggregatable => {
-      aggregatable.from = collectionOf(aggregatable.ref);
+      aggregatable.from = collectionNameOf(aggregatable.ref);
       return aggregatable;
     };
     aggregatables = _.map(aggregatables, ensureFromCollection);
