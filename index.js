@@ -60,9 +60,9 @@ const normalize = optns => {
   aggregatable = mergeObjects({}, aggregatable);
 
   // normalize unwind
-  const unwindPath = (isArray ? singularize(pathName) : pathName);
+  const unwindPathName = (isArray ? singularize(pathName) : pathName);
   const unwindDefaults =
-    ({ path: `$${unwindPath}`, preserveNullAndEmptyArrays: true });
+    ({ path: `$${unwindPathName}`, preserveNullAndEmptyArrays: true });
   const shouldUnwind = (aggregatable.unwind || !isArray);
   aggregatable.unwind = (
     shouldUnwind ?
@@ -73,7 +73,7 @@ const normalize = optns => {
   // shape lookup options format as per mongodb specs
   let lookup = mergeObjects({
     from: collectionNameOf(ref),
-    as: pathName,
+    as: shouldUnwind ? unwindPathName : pathName,
     localField: pathName,
     foreignField: '_id'
   }, aggregatable);
