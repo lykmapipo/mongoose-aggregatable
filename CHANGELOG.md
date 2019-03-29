@@ -1,3 +1,9 @@
+#### 0.2.1 (2019-03-29)
+
+##### Chores
+
+*  force use of latest dependencies ([bea8a5b7](https://github.com/lykmapipo/mongoose-aggregatable/commit/bea8a5b7d1f4a82e22cb3ed619fd58954839fa8d))
+
 #### 0.2.0 (2019-03-29)
 
 ##### Refactors
