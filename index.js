@@ -3,17 +3,94 @@
 
 /* dependencies */
 const _ = require('lodash');
-const inflection = require('inflection');
-const { eachPath, model } = require('@lykmapipo/mongoose-common');
-
-
-/* constants */
-const LOOKUP_FIELDS = ['from', 'localField', 'foreignField', 'as'];
+const { singularize } = require('inflection');
+const { mergeObjects } = require('@lykmapipo/common');
+const {
+  LOOKUP_FIELDS,
+  eachPath,
+  model,
+  toCollectionName,
+  schemaTypeOptionOf
+} = require('@lykmapipo/mongoose-common');
 
 
 /**
- * @function normalizeAggregatable
- * @name normalizeAggregatable
+ * @function isArraySchema
+ * @name isArraySchema
+ * @description check if schema type is array
+ * @param {SchemaType} schemaType valid mongoose schema type
+ * @return {Boolean} whether schema type is array
+ * @since 0.2.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * 
+ * const isArray = isArraySchema(schemaType)
+ * //=> true
+ */
+const isArraySchema = (schemaType = {}) => {
+  const { $isMongooseArray = false, instance } = schemaType;
+  const isArray = ($isMongooseArray || instance === 'Array');
+  return isArray;
+};
+
+/**
+ * @function isAggregatablePath
+ * @name isAggregatablePath
+ * @description check if schema path has aggregatable options
+ * @param {SchemaType} schemaType valid mongoose schema type
+ * @return {Boolean} whether schema path is aggregatable
+ * @since 0.2.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * 
+ * const isAggregatable = isAggregatablePath(schemaType)
+ * //=> true
+ */
+const isAggregatablePath = (schemaType = {}) => {
+  const options = schemaTypeOptionOf(schemaType);
+  const canBeAggregated = (options && options.aggregatable && options.ref);
+  return canBeAggregated;
+};
+
+
+/**
+ * @function collectionOf
+ * @name collectionOf
+ * @description obtain collection name of the ref model
+ * @param {String} ref valid model ref
+ * @return {String} underlying collection of the model
+ * @since 0.2.0
+ * @version 0.1.0
+ * @private
+ * @example
+ * 
+ * const collection = collectionOf('User');
+ * //=> 'users'
+ * 
+ */
+const collectionOf = ref => {
+  // get ref model collection name
+  const Ref = model(ref);
+  let collectionName = (
+    _.get(Ref, 'collection.name') ||
+    _.get(Ref, 'collection.collectionName')
+  );
+
+  // derive collection from ref
+  collectionName = (
+    !_.isEmpty(collectionName) ? collectionName : toCollectionName(ref)
+  );
+
+  // return ref collection name
+  return collectionName;
+};
+
+
+/**
+ * @function normalize
+ * @name normalize
  * @description normalize aggragate options
  * @param {Object} optns aggregatable path options
  * @return {Object} normalized aggregatable options
@@ -23,33 +100,41 @@ const LOOKUP_FIELDS = ['from', 'localField', 'foreignField', 'as'];
  * @version 0.1.0
  * @private
  * @example
- * const options = normalizeAggregatable(optns)
+ * 
+ * const options = normalize(optns);
+ * //=> { from: 'users', as: 'user', ...}
+ * 
  */
-function normalizeAggregatable(optns) {
-  // ensure options
-  let { pathName, ref, aggregatable, isArray } = optns;
-  aggregatable = _.merge({}, aggregatable);
+const normalize = optns => {
+  // pick options
+  let { pathName, ref, aggregatable, isArray } = mergeObjects(optns);
 
-  // shape aggragatable options to follow 
-  // mongodb $lookup options format
-  const _from = (aggregatable.from || (ref ? inflection.pluralize(ref) : ref));
-  const _as = (aggregatable.as || inflection.singularize(pathName));
-  const foreignField = (aggregatable.foreignField || '_id');
-  const lookup = ({
-    from: _from,
+  // normalize aggregatable
+  aggregatable = mergeObjects({}, aggregatable);
+
+  // normalize unwind
+  const unwindPath = (isArray ? singularize(pathName) : pathName);
+  const unwindDefaults =
+    ({ path: `$${unwindPath}`, preserveNullAndEmptyArrays: true });
+  const shouldUnwind = (aggregatable.unwind || !isArray);
+  aggregatable.unwind = (
+    shouldUnwind ?
+    mergeObjects(unwindDefaults, aggregatable.unwind) :
+    undefined
+  );
+
+  // shape lookup options format as per mongodb specs
+  let lookup = mergeObjects({
+    from: collectionOf(ref),
+    as: pathName,
     localField: pathName,
-    foreignField: foreignField,
-    as: _as,
-    unwind: {
-      path: `$${_as}`,
-      preserveNullAndEmptyArrays: true
-    }
-  });
+    foreignField: '_id'
+  }, aggregatable);
+  lookup = mergeObjects({ pathName, ref, isArray }, lookup);
 
-  // merge options
-  let options = _.merge({}, { pathName, ref, isArray }, lookup);
-  return options;
-}
+  // return lookup options
+  return lookup;
+};
 
 
 /**
@@ -72,29 +157,20 @@ function collectAggregatables(schema) {
 
   // collect aggregatable schema paths
   eachPath(schema, function collectAggregatablePath(pathName, schemaType) {
-    // obtain path schema type options
-    const schemaTypeOptions = _.merge({},
-      _.get(schemaType, 'caster.options'),
-      _.get(schemaType, 'options')
-    );
-
-    // check if is array
-    const isArray =
-      (schemaType.$isMongooseArray || schemaType.instance === 'Array');
-    schemaTypeOptions.isArray = isArray;
-
     // check if path is aggregatable
-    const isAggregatable =
-      (schemaTypeOptions && schemaTypeOptions.aggregatable);
+    const isAggregatable = isAggregatablePath(schemaType);
 
     // if aggregatable collect
     if (isAggregatable) {
+      // obtain path schema type options
+      const { ref, aggregatable } = schemaTypeOptionOf(schemaType);
+      // check if is array
+      const isArray = isArraySchema(schemaType);
       // obtain aggregatable options
-      const { ref, aggregatable, isArray } = schemaTypeOptions;
-      const optns = _.merge({}, { pathName, ref, aggregatable, isArray });
+      const optns = mergeObjects({ pathName, ref, aggregatable, isArray });
 
       // collect aggregatable schema path
-      aggregatables[pathName] = normalizeAggregatable(optns);
+      aggregatables[pathName] = normalize(optns);
     }
   });
 
@@ -120,7 +196,7 @@ function collectAggregatables(schema) {
  * @example
  * const aggregatable = require('@lykmapipo/mongoose-aggregatable');
  * const UserSchema = 
- * 	new Schema({ parent: { type: ObjectId, ref:'User', aggregatable:true } });
+ *  new Schema({ parent: { type: ObjectId, ref:'User', aggregatable:true } });
  * UserSchema.plugin(aggregatable);
  */
 function aggregatable(schema, optns) {
@@ -145,7 +221,7 @@ function aggregatable(schema, optns) {
    * @private
    * const aggregation = User.lookup();
    */
-  schema.statics.lookup = function lookup(criteria) {
+  schema.statics.lookup = function lookup(criteria /*, optns*/ ) {
     // ref
     const Model = this;
 
@@ -191,10 +267,12 @@ function aggregatable(schema, optns) {
       aggregate.lookup(lookupOptns);
 
       // TODO unwind localField if its an array
+      // console.log(aggregatable);
 
       // do unwind
-      const unwindOptns = aggregatable.unwind;
-      aggregate.unwind(unwindOptns);
+      if (aggregatable.unwind) {
+        aggregate.unwind(aggregatable.unwind);
+      }
     });
 
     // allow disk usage for aggregation

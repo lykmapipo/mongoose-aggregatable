@@ -9,6 +9,7 @@ const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const { clear } = require('@lykmapipo/mongoose-test-helpers');
 const aggregatable = include(__dirname, '..');
 
+// require('mongoose').set('debug', true);
 
 /* prepare schemas */
 const PersonSchema = new Schema({
@@ -16,8 +17,8 @@ const PersonSchema = new Schema({
   father: { type: ObjectId, ref: 'Person', aggregatable: true },
   mother: { type: ObjectId, ref: 'Person', aggregatable: true },
   sister: { type: ObjectId, ref: 'Person', aggregatable: true },
-  brother: { type: ObjectId, aggregatable: { from: 'people' } },
-  relatives: { type: [ObjectId], ref: 'Person', aggregatable: true },
+  brother: { type: ObjectId, ref: 'Person', aggregatable: { from: 'people' } },
+  relatives: { type: [ObjectId], ref: 'Person', aggregatable: { unwind: true } },
   friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }]
 });
 
@@ -123,7 +124,7 @@ describe('aggregatable', function () {
     expect(father.unwind.path).to.exist;
     expect(father.unwind.path).to.be.equal('$father');
     expect(father.unwind.preserveNullAndEmptyArrays).to.be.true;
-    expect(father.isArray).to.be.false;
+    expect(father.isArray).to.be.undefined;
   });
 
   it('should normalize array aggregatable path', () => {
@@ -134,11 +135,12 @@ describe('aggregatable', function () {
     expect(friends.foreignField).to.exist;
     expect(friends.foreignField).to.be.equal('_id');
     expect(friends.as).to.exist;
-    expect(friends.as).to.be.equal('friend');
-    expect(friends.unwind).to.exist;
-    expect(friends.unwind.path).to.exist;
-    expect(friends.unwind.path).to.be.equal('$friend');
-    expect(friends.unwind.preserveNullAndEmptyArrays).to.be.true;
+    expect(friends.as).to.be.equal('friends');
+    // expect(friends.as).to.be.equal('friend');
+    // expect(friends.unwind).to.exist;
+    // expect(friends.unwind.path).to.exist;
+    // expect(friends.unwind.path).to.be.equal('$friend');
+    // expect(friends.unwind.preserveNullAndEmptyArrays).to.be.true;
     expect(friends.isArray).to.be.true;
   });
 
@@ -180,7 +182,7 @@ describe('aggregatable', function () {
     Person.lookup({ _id: jean._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
-      expect(people).to.have.length(2);
+      expect(people).to.have.length(1);
 
       const person = _.first(people);
       expect(person.father).to.exist;
@@ -192,7 +194,7 @@ describe('aggregatable', function () {
       expect(person.brother).to.exist;
       expect(person.brother._id).to.be.eql(brother._id);
       expect(person.friends).to.have.length(2);
-      expect(person.friend).to.exist;
+      // expect(person.friend).to.exist;
       expect(person.relatives).to.be.empty;
       done(error, people);
     });
@@ -202,7 +204,7 @@ describe('aggregatable', function () {
     Person.lookup({ _id: father._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
-      expect(people).to.have.length(2);
+      expect(people).to.have.length(1);
 
       const person = _.first(people);
       expect(person.father).to.not.exist;
@@ -219,7 +221,7 @@ describe('aggregatable', function () {
     Person.lookup({ _id: mother._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
-      expect(people).to.have.length(2);
+      expect(people).to.have.length(1);
 
       const person = _.first(people);
       expect(person.father).to.not.exist;
