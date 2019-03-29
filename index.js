@@ -201,10 +201,17 @@ const collectAggregatables = schema => {
  * @example
  * 
  * const aggregatable = require('@lykmapipo/mongoose-aggregatable');
- * const UserSchema = 
- *  new Schema({ parent: { type: ObjectId, ref:'User', aggregatable:true } });
+ * const UserSchema = new Schema({ 
+ *   parent: { 
+ *     type: ObjectId, 
+ *     ref:'User', 
+ *     aggregatable:true 
+ *    } 
+ *   });
  * UserSchema.plugin(aggregatable);
  *
+ * ...
+ * 
  * User.lookup((error, users) => { ... });
  */
 const aggregatable = (schema, optns) => {
