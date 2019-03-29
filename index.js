@@ -34,6 +34,7 @@ const isArraySchema = (schemaType = {}) => {
   return isArray;
 };
 
+
 /**
  * @function isAggregatablePath
  * @name isAggregatablePath
@@ -149,14 +150,16 @@ const normalize = optns => {
  * @since 0.1.0
  * @version 0.1.0
  * @private
+ * 
  * const aggregatables = collectAggregatables(schema);
+ * //=> { sister: { pathName: 'sister', ref: 'Person'}, ... }
  */
-function collectAggregatables(schema) {
+const collectAggregatables = schema => {
   // aggregatable map
   const aggregatables = {};
 
-  // collect aggregatable schema paths
-  eachPath(schema, function collectAggregatablePath(pathName, schemaType) {
+  // aggregatable path filter
+  const collectAggregatablePath = (pathName, schemaType) => {
     // check if path is aggregatable
     const isAggregatable = isAggregatablePath(schemaType);
 
@@ -168,15 +171,17 @@ function collectAggregatables(schema) {
       const isArray = isArraySchema(schemaType);
       // obtain aggregatable options
       const optns = mergeObjects({ pathName, ref, aggregatable, isArray });
-
       // collect aggregatable schema path
       aggregatables[pathName] = normalize(optns);
     }
-  });
+  };
+
+  // collect aggregatable schema paths
+  eachPath(schema, collectAggregatablePath);
 
   // return collect aggregatable schema paths
   return aggregatables;
-}
+};
 
 
 /**
@@ -205,6 +210,8 @@ function aggregatable(schema, optns) {
 
   // collect aggregatables schema paths
   const aggregatables = collectAggregatables(schema);
+
+  // remember aggregatable paths as model static
   schema.statics.AGGREGATABLE_FIELDS = aggregatables;
 
   // TODO add to Aggregate.prototype
@@ -218,37 +225,30 @@ function aggregatable(schema, optns) {
    * @license MIT
    * @since 0.1.0
    * @version 0.1.0
-   * @private
+   * @public
    * const aggregation = User.lookup();
    */
   schema.statics.lookup = function lookup(criteria /*, optns*/ ) {
-    // ref
+    // ref curent model
     const Model = this;
 
-    // obtain aggregatable
-    let aggregatables = _.merge({}, Model.AGGREGATABLE_FIELDS);
+    // copy aggregatables
+    let aggregatables = mergeObjects({}, Model.AGGREGATABLE_FIELDS);
 
     // filter to allow only valid aggergatable
-    aggregatables =
-      _.filter(aggregatables, function filterValidAggregatable(aggregatable) {
-        return !_.isEmpty(aggregatable.ref || aggregatable.from);
-      });
+    const isValidAggregatable = aggregatable => {
+      return !_.isEmpty(aggregatable.ref || aggregatable.from);
+    };
+    aggregatables = _.filter(aggregatables, isValidAggregatable);
 
     // ensure aggregatable collection name(i.e from collection)
-    aggregatables =
-      _.map(aggregatables, function ensureFromCollection(aggregatable) {
-        // obtain mongoose model from ref
-        const refModel = model(aggregatable.ref);
-        // obtain collection name(from) from ref model
-        if (refModel && refModel.collection) {
-          const collectionName =
-            (refModel.collection.name || aggregatable.from);
-          aggregatable.from = collectionName;
-        }
-        return aggregatable;
-      });
+    const ensureFromCollection = aggregatable => {
+      aggregatable.from = collectionOf(aggregatable.ref);
+      return aggregatable;
+    };
+    aggregatables = _.map(aggregatables, ensureFromCollection);
 
-    //initialize aggregate query
+    // initialize aggregate query
     const aggregate = Model.aggregate();
 
     // pass match criteria
@@ -261,19 +261,17 @@ function aggregatable(schema, optns) {
     }
 
     // build aggregation based on aggregatables
-    _.forEach(aggregatables, function buildAggregation(aggregatable) {
+    const buildAggregation = aggregatable => {
       // do lookup
       const lookupOptns = _.pick(aggregatable, LOOKUP_FIELDS);
       aggregate.lookup(lookupOptns);
-
-      // TODO unwind localField if its an array
-      // console.log(aggregatable);
 
       // do unwind
       if (aggregatable.unwind) {
         aggregate.unwind(aggregatable.unwind);
       }
-    });
+    };
+    _.forEach(aggregatables, buildAggregation);
 
     // allow disk usage for aggregation
     const { allowDiskUse } = options;
