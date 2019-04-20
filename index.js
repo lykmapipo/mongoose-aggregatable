@@ -7,10 +7,10 @@ const { singularize } = require('inflection');
 const { mergeObjects } = require('@lykmapipo/common');
 const {
   LOOKUP_FIELDS,
-  eachPath,
   collectionNameOf,
-  schemaTypeOptionOf,
-  isArraySchemaType
+  eachPath,
+  isArraySchemaType,
+  schemaTypeOptionOf
 } = require('@lykmapipo/mongoose-common');
 
 
