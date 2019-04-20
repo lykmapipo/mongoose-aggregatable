@@ -1,3 +1,18 @@
+#### 0.2.2 (2019-04-20)
+
+##### Chores
+
+*  remove unused dependencies ([6be289ba](https://github.com/lykmapipo/mongoose-aggregatable/commit/6be289bad1eefcdf22cb5cc024619284b2700305))
+*  force latest dependencies ([3db41294](https://github.com/lykmapipo/mongoose-aggregatable/commit/3db412947a5427795779f3d3df4cd65e7b90d038))
+
+##### Documentation Changes
+
+*  add code of conduct and contributing guide ([139b6196](https://github.com/lykmapipo/mongoose-aggregatable/commit/139b619636f740d2cf2549b8bfaa7bbfef9963a8))
+
+##### Refactors
+
+*  reorder imports ([8c7e6b51](https://github.com/lykmapipo/mongoose-aggregatable/commit/8c7e6b5153e52bee1aaf083c26da5cfb51f62d0b))
+
 #### 0.2.1 (2019-03-29)
 
 ##### Chores
