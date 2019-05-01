@@ -1,3 +1,11 @@
+#### 0.2.3 (2019-05-01)
+
+##### Chores
+
+* **ci:**  force latest nodejs ([f2105e59](https://github.com/lykmapipo/mongoose-aggregatable/commit/f2105e599b9153fd182a3fafc472a72ba588e9d0))
+* **.npmrc:**  prevent npm version to commit and tag version ([72806d3c](https://github.com/lykmapipo/mongoose-aggregatable/commit/72806d3cd5fc8d71e4c2488c8cec8d234a356579))
+* **deps:**  force latest version & audit fix ([9d4cb2b0](https://github.com/lykmapipo/mongoose-aggregatable/commit/9d4cb2b06a7057f2266b05ac221aa3931e22e7c4))
+
 #### 0.2.2 (2019-04-20)
 
 ##### Chores
