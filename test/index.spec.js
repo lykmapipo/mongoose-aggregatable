@@ -75,7 +75,7 @@ describe('aggregatable', function () {
     expect(father.unwind.path).to.exist;
     expect(father.unwind.path).to.be.equal('$father');
     expect(father.unwind.preserveNullAndEmptyArrays).to.be.true;
-    expect(father.isArray).to.be.undefined;
+    expect(father.isArray).to.be.false;
   });
 
   it('should normalize unwindable array aggregatable path', () => {
