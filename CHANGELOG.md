@@ -1,3 +1,9 @@
+#### 0.2.6 (2019-06-10)
+
+##### Chores
+
+* **deps:**  force latest version & audit fix ([7aa926c2](https://github.com/lykmapipo/mongoose-aggregatable/commit/7aa926c2349e5042b1312a1bb0345aa01cb7b8ce))
+
 #### 0.2.5 (2019-05-20)
 
 ##### Chores
