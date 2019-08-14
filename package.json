@@ -1,6 +1,6 @@
 {
   "name": "@lykmapipo/mongoose-aggregatable",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "mongoose plugin to add exports behaviour",
   "keywords": [
     "lykmapipo",
