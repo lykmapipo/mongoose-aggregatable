@@ -3,11 +3,10 @@
 
 /* dependencies */
 const _ = require('lodash');
-const { include } = require('@lykmapipo/include');
 const { expect } = require('chai');
 const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
 const { clear } = require('@lykmapipo/mongoose-test-helpers');
-const aggregatable = include(__dirname, '..');
+const aggregatable = require('..');
 
 
 /* prepare schemas */
