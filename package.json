@@ -1,6 +1,6 @@
 {
   "name": "@lykmapipo/mongoose-aggregatable",
-  "version": "0.2.16",
+  "version": "0.3.0",
   "description": "mongoose plugin to add exports behaviour",
   "keywords": [
     "lykmapipo",
@@ -54,15 +54,15 @@
     "jshint-stylish": "^2.2.1",
     "minimist": "^1.2.5",
     "mocha": "^7.1.2",
-    "mongoose": ">=5.9.10",
+    "mongoose": ">=5.9.11",
     "shelljs": "^0.8.4"
   },
   "peerDependencies": {
-    "mongoose": ">=5.9.10"
+    "mongoose": ">=5.9.11"
   },
   "dependencies": {
     "@lykmapipo/common": ">=0.33.0",
-    "@lykmapipo/mongoose-common": ">=0.32.1",
+    "@lykmapipo/mongoose-common": ">=0.33.0",
     "async": ">=3.2.0",
     "inflection": ">=1.12.0",
     "lodash": ">=4.17.15"
