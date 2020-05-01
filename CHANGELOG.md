@@ -1,3 +1,13 @@
+#### 0.3.0 (2020-05-01)
+
+##### Chores
+
+* **deps:**  force latest version & audit fix ([8149d9ea](https://github.com/lykmapipo/mongoose-aggregatable/commit/8149d9ea71fc7981accf0015b45880260c7e60d8))
+
+##### New Features
+
+* **lookup:**  allow exlude options ([28b5b73a](https://github.com/lykmapipo/mongoose-aggregatable/commit/28b5b73aba54bd43bfc3c088e5603b5011809d6e))
+
 #### 0.2.16 (2020-04-28)
 
 ##### Chores
