@@ -176,24 +176,35 @@ const aggregatable = (schema, optns) => {
    * @function lookup
    * @name lookup
    * @description Initialize aggregations on the model using aggregatable paths.
+   * @param {Object} [opts] valid aggregation options
+   * @param {Object} [opts.exclude=[]] excluded aggregatable paths 
+   * from aggregation
    * @return {Aggregate} mongoose aggregate instance
    * @author lally elias <lallyelias87@mail.com>
    * @license MIT
    * @since 0.1.0
-   * @version 0.1.0
+   * @version 0.2.0
    * @public
    * const aggregation = User.lookup();
    */
-  schema.statics.lookup = function lookup(criteria /*, optns*/ ) {
+  schema.statics.lookup = function lookup(criteria, opts = {}) {
     // ref curent model
     const Model = this;
+
+    // ensure options
+    const { exclude = [] } = mergeObjects(opts);
 
     // copy aggregatables
     let aggregatables = mergeObjects({}, Model.AGGREGATABLE_FIELDS);
 
     // filter to allow only valid aggergatable
     const isValidAggregatable = aggregatable => {
-      return !_.isEmpty(aggregatable.ref || aggregatable.from);
+      const isAllowedPath = !(
+        _.includes(exclude, aggregatable.as) ||
+        _.includes(exclude, aggregatable.localField)
+      );
+      const hasRefAndFrom = !_.isEmpty(aggregatable.ref || aggregatable.from);
+      return isAllowedPath && hasRefAndFrom;
     };
     aggregatables = _.filter(aggregatables, isValidAggregatable);
 

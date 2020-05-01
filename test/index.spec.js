@@ -210,6 +210,27 @@ describe('aggregatable', function () {
     });
   });
 
+  it('should remove excluded path from aggregation', done => {
+    const criteria = { _id: jay._id };
+    const optns = { exclude: ['relatives', 'mother'] };
+    Person.lookup(criteria, optns).exec((error, people) => {
+      expect(error).to.not.exist;
+      expect(people).to.exist;
+      expect(people).to.have.length(1);
+
+      const first = _.first(people);
+
+      expect(first._id).to.be.eql(jay._id);
+      expect(first.name).to.be.eql(jay.name);
+      expect(first.mother).to.exist;
+      expect(first.father).to.have.a.property('_id');
+      expect(first.relative).to.not.exist;
+      expect(first.relatives).to.exist;
+
+      done(error, people);
+    });
+  });
+
   after(done => clear(done));
 
 });
