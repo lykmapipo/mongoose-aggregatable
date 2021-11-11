@@ -1,3 +1,13 @@
+#### 0.4.0 (2021-11-11)
+
+##### Chores
+
+* **release:**  compile latest source ([773d5120](https://github.com/lykmapipo/mongoose-aggregatable/commit/773d51203af23e513aba955c8c2eed717c11a32a))
+
+##### Refactors
+
+*  migrate to use es6 ([61a6aa67](https://github.com/lykmapipo/mongoose-aggregatable/commit/61a6aa67cdbd76eda0209f6c777b5aed9a9071da))
+
 #### 0.3.9 (2020-08-08)
 
 ##### Chores
