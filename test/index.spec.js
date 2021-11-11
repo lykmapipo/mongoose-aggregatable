@@ -1,15 +1,9 @@
-'use strict';
+import _ from 'lodash';
+import { model, Schema, ObjectId } from '@lykmapipo/mongoose-common';
+import { expect, clear } from '@lykmapipo/mongoose-test-helpers';
+import mongooseFaker from '@lykmapipo/mongoose-faker';
+import aggregatable from '../src';
 
-
-/* dependencies */
-const _ = require('lodash');
-const { expect } = require('chai');
-const { model, Schema, ObjectId } = require('@lykmapipo/mongoose-common');
-const { clear } = require('@lykmapipo/mongoose-test-helpers');
-const aggregatable = require('..');
-
-
-/* prepare schemas */
 const PersonSchema = new Schema({
   name: { type: String, fake: { generator: 'name', type: 'findName' } },
   father: { type: ObjectId, ref: 'Person', aggregatable: true },
@@ -17,33 +11,45 @@ const PersonSchema = new Schema({
   sister: { type: ObjectId, ref: 'Person', aggregatable: true },
   brother: { type: ObjectId, ref: 'Person', aggregatable: { from: 'people' } },
   friends: [{ type: ObjectId, ref: 'Person', aggregatable: true }],
-  relatives: { type: [ObjectId], ref: 'Person', aggregatable: { unwind: true } }
+  relatives: {
+    type: [ObjectId],
+    ref: 'Person',
+    aggregatable: { unwind: true },
+  },
 });
 
-PersonSchema.plugin(require('@lykmapipo/mongoose-faker'));
+PersonSchema.plugin(mongooseFaker);
 PersonSchema.plugin(aggregatable);
 const Person = model('Person', PersonSchema);
 
+describe('aggregatable', () => {
+  const relatives = [Person.fake(), Person.fake()];
+  const friends = [Person.fake(), Person.fake()];
+  const father = Person.fake().set({ friends });
+  const mother = Person.fake().set({ friends });
+  const sister = Person.fake();
+  const brother = Person.fake();
+  const john = Person.fake().set({ father, mother, sister });
+  const jean = Person.fake().set({ father, mother, sister, brother, friends });
+  const jay = Person.fake().set({ father, mother, relatives });
 
-describe('aggregatable', function () {
+  before((done) => clear(done));
 
-  let relatives = [Person.fake(), Person.fake()];
-  let friends = [Person.fake(), Person.fake()];
-  let father = Person.fake().set({ friends });
-  let mother = Person.fake().set({ friends });
-  let sister = Person.fake();
-  let brother = Person.fake();
-  let john = Person.fake().set({ father, mother, sister });
-  let jean = Person.fake().set({ father, mother, sister, brother, friends });
-  let jay = Person.fake().set({ father, mother, relatives });
-
-  before(done => clear(done));
-
-  before(done => {
-    Person.insertMany([
-      ...relatives, ...friends, father, mother,
-      sister, brother, john, jean, jay
-    ], done);
+  before((done) => {
+    Person.insertMany(
+      [
+        ...relatives,
+        ...friends,
+        father,
+        mother,
+        sister,
+        brother,
+        john,
+        jean,
+        jay,
+      ],
+      done
+    );
   });
 
   it('should collect aggregatable paths', () => {
@@ -62,47 +68,47 @@ describe('aggregatable', function () {
   });
 
   it('should normalize aggregatable path', () => {
-    const { father } = Person.AGGREGATABLE_FIELDS;
-    expect(father).to.exist;
-    expect(father.localField).to.exist;
-    expect(father.localField).to.be.equal('father');
-    expect(father.foreignField).to.exist;
-    expect(father.foreignField).to.be.equal('_id');
-    expect(father.as).to.exist;
-    expect(father.as).to.be.equal('father');
-    expect(father.unwind).to.exist;
-    expect(father.unwind.path).to.exist;
-    expect(father.unwind.path).to.be.equal('$father');
-    expect(father.unwind.preserveNullAndEmptyArrays).to.be.true;
-    expect(father.isArray).to.be.false;
+    const { father: fatherPath } = Person.AGGREGATABLE_FIELDS;
+    expect(fatherPath).to.exist;
+    expect(fatherPath.localField).to.exist;
+    expect(fatherPath.localField).to.be.equal('father');
+    expect(fatherPath.foreignField).to.exist;
+    expect(fatherPath.foreignField).to.be.equal('_id');
+    expect(fatherPath.as).to.exist;
+    expect(fatherPath.as).to.be.equal('father');
+    expect(fatherPath.unwind).to.exist;
+    expect(fatherPath.unwind.path).to.exist;
+    expect(fatherPath.unwind.path).to.be.equal('$father');
+    expect(fatherPath.unwind.preserveNullAndEmptyArrays).to.be.true;
+    expect(fatherPath.isArray).to.be.false;
   });
 
   it('should normalize unwindable array aggregatable path', () => {
-    const { relatives } = Person.AGGREGATABLE_FIELDS;
-    expect(relatives).to.exist;
-    expect(relatives.localField).to.exist;
-    expect(relatives.localField).to.be.equal('relatives');
-    expect(relatives.foreignField).to.exist;
-    expect(relatives.foreignField).to.be.equal('_id');
-    expect(relatives.as).to.exist;
-    expect(relatives.as).to.be.equal('relative');
-    expect(relatives.unwind).to.exist;
-    expect(relatives.unwind.path).to.exist;
-    expect(relatives.unwind.path).to.be.equal('$relative');
-    expect(relatives.unwind.preserveNullAndEmptyArrays).to.be.true;
-    expect(relatives.isArray).to.be.true;
+    const { relatives: relativesPath } = Person.AGGREGATABLE_FIELDS;
+    expect(relativesPath).to.exist;
+    expect(relativesPath.localField).to.exist;
+    expect(relativesPath.localField).to.be.equal('relatives');
+    expect(relativesPath.foreignField).to.exist;
+    expect(relativesPath.foreignField).to.be.equal('_id');
+    expect(relativesPath.as).to.exist;
+    expect(relativesPath.as).to.be.equal('relative');
+    expect(relativesPath.unwind).to.exist;
+    expect(relativesPath.unwind.path).to.exist;
+    expect(relativesPath.unwind.path).to.be.equal('$relative');
+    expect(relativesPath.unwind.preserveNullAndEmptyArrays).to.be.true;
+    expect(relativesPath.isArray).to.be.true;
   });
 
   it('should normalize array aggregatable path', () => {
-    const { friends } = Person.AGGREGATABLE_FIELDS;
-    expect(friends).to.exist;
-    expect(friends.localField).to.exist;
-    expect(friends.localField).to.be.equal('friends');
-    expect(friends.foreignField).to.exist;
-    expect(friends.foreignField).to.be.equal('_id');
-    expect(friends.as).to.exist;
-    expect(friends.as).to.be.equal('friends');
-    expect(friends.isArray).to.be.true;
+    const { friends: friendsPath } = Person.AGGREGATABLE_FIELDS;
+    expect(friendsPath).to.exist;
+    expect(friendsPath.localField).to.exist;
+    expect(friendsPath.localField).to.be.equal('friends');
+    expect(friendsPath.foreignField).to.exist;
+    expect(friendsPath.foreignField).to.be.equal('_id');
+    expect(friendsPath.as).to.exist;
+    expect(friendsPath.as).to.be.equal('friends');
+    expect(friendsPath.isArray).to.be.true;
   });
 
   it('should be able to lookup', () => {
@@ -110,7 +116,7 @@ describe('aggregatable', function () {
     expect(Person.lookup).to.be.a('function');
   });
 
-  it('should aggreate from aggregatable paths', done => {
+  it('should aggregate from aggregatable paths', (done) => {
     Person.lookup().exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
@@ -119,7 +125,7 @@ describe('aggregatable', function () {
     });
   });
 
-  it('should aggreate from aggregatable paths with criteria', done => {
+  it('should aggregate from aggregatable paths with criteria', (done) => {
     Person.lookup({ _id: john._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
@@ -138,7 +144,7 @@ describe('aggregatable', function () {
     });
   });
 
-  it('should aggreate from aggregatable paths with criteria', done => {
+  it('should aggregate from aggregatable paths with criteria', (done) => {
     Person.lookup({ _id: jean._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
@@ -159,7 +165,7 @@ describe('aggregatable', function () {
     });
   });
 
-  it('should aggreate from aggregatable paths with criteria', done => {
+  it('should aggregate from aggregatable paths with criteria', (done) => {
     Person.lookup({ _id: father._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
@@ -175,7 +181,7 @@ describe('aggregatable', function () {
     });
   });
 
-  it('should aggreate from aggregatable paths with criteria', done => {
+  it('should aggregate from aggregatable paths with criteria', (done) => {
     Person.lookup({ _id: mother._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
@@ -191,7 +197,7 @@ describe('aggregatable', function () {
     });
   });
 
-  it('should aggreate from aggregatable paths with criteria', done => {
+  it('should aggregate from aggregatable paths with criteria', (done) => {
     Person.lookup({ _id: jay._id }).exec((error, people) => {
       expect(error).to.not.exist;
       expect(people).to.exist;
@@ -210,7 +216,7 @@ describe('aggregatable', function () {
     });
   });
 
-  it('should remove excluded path from aggregation', done => {
+  it('should remove excluded path from aggregation', (done) => {
     const criteria = { _id: jay._id };
     const optns = { exclude: ['relatives', 'mother'] };
     Person.lookup(criteria, optns).exec((error, people) => {
@@ -231,6 +237,5 @@ describe('aggregatable', function () {
     });
   });
 
-  after(done => clear(done));
-
+  after((done) => clear(done));
 });
